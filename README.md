@@ -20,3 +20,53 @@ make tests
 ### Postman requests collection
 
 You can import all available API calls to Postman using `postman_collection.json` file
+
+### Available endpoints
+
+#### Login
+* URI: `/login`
+* method: `POST`
+* body: `raw JSON`
+* example: 
+```
+  {
+      "username": "john",
+      "password": "maxsecure"
+  }
+```
+
+#### Logout
+* URI: `/logout`
+* method: `POST`
+* body: `none`
+
+#### Get items
+* URI: `/item`
+* method: `GET`
+* body: `none`
+
+#### Create item
+* URI: `/item`
+* method: `POST`
+* body: `form data`
+* example: 
+```
+  name="data" value="new item secret"
+```
+
+#### Update item
+* URI: `/item`
+* method: `PUT`
+* body: `form data`
+* example: 
+```
+  name="id" value="1"
+```
+```
+  name="data" value="new secret"
+```
+
+#### Delete item
+* URI: `/item/{id}`
+* method: `DELETE`
+* body: `none`
