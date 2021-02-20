@@ -95,6 +95,105 @@ class ItemControllerTest extends WebTestCase
         ]);
     }
 
+    public function testUpdate(): void
+    {
+        $item = $this->makeItem();
+        $data = 'updated data ' . microtime(true);
+        $id = $item->getId();
+        $content = 'Content-Disposition: form-data; name="id"' . PHP_EOL . PHP_EOL . $id . PHP_EOL;
+        $content .= 'Content-Disposition: form-data; name="data"' . PHP_EOL . PHP_EOL . $data . PHP_EOL;
+
+        $this->client->request('PUT', '/item', [], [], [], $content);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseArrayData([]);
+
+        $item = $this->itemsRepository->find($id);
+        $this->assertInstanceOf(Item::class, $item);
+        $this->assertEquals($data, $item->getData());
+    }
+
+    public function testUpdateIfInvalidData(): void
+    {
+        $item = $this->makeItem();
+        $data = '';
+        $id = $item->getId();
+        $content = 'Content-Disposition: form-data; name="id"' . PHP_EOL . PHP_EOL . $id . PHP_EOL;
+        $content .= 'Content-Disposition: form-data; name="data"' . PHP_EOL . PHP_EOL . $data . PHP_EOL;
+
+        $this->client->request('PUT', '/item', [], [], [], $content);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertResponseArrayData([
+            'error' => 'No data parameter (data)'
+        ]);
+    }
+
+    public function testUpdateIfNoData(): void
+    {
+        $item = $this->makeItem();
+        $id = $item->getId();
+        $content = 'Content-Disposition: form-data; name="id"' . PHP_EOL . PHP_EOL . $id . PHP_EOL;
+
+        $this->client->request('PUT', '/item', [], [], [], $content);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertResponseArrayData([
+            'error' => 'No data parameter (data)'
+        ]);
+    }
+
+    public function testUpdateIfNoId(): void
+    {
+        $this->client->request('PUT', '/item', [], [], [], '');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertResponseArrayData([
+            'error' => 'No data parameter (id)'
+        ]);
+    }
+
+    public function testUpdateIfEmptyId(): void
+    {
+        $id = '';
+        $content = 'Content-Disposition: form-data; name="id"' . PHP_EOL . PHP_EOL . $id . PHP_EOL;
+
+        $this->client->request('PUT', '/item', [], [], [], $content);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertResponseArrayData([
+            'error' => 'No data parameter (id)'
+        ]);
+    }
+
+    public function testUpdateIfEmptyIdIsZero(): void
+    {
+        $id = '0';
+        $content = 'Content-Disposition: form-data; name="id"' . PHP_EOL . PHP_EOL . $id . PHP_EOL;
+
+        $this->client->request('PUT', '/item', [], [], [], $content);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertResponseArrayData([
+            'error' => 'No data parameter (id)'
+        ]);
+    }
+
+    public function testUpdateIfEmptyIdIsWrong(): void
+    {
+        $id = '-1';
+        $data = 'data';
+        $content = 'Content-Disposition: form-data; name="id"' . PHP_EOL . PHP_EOL . $id . PHP_EOL;
+        $content .= 'Content-Disposition: form-data; name="data"' . PHP_EOL . PHP_EOL . $data . PHP_EOL;
+
+        $this->client->request('PUT', '/item', [], [], [], $content);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertResponseArrayData([
+            'error' => 'No item'
+        ]);
+    }
+
     public function testDelete(): void
     {
         $item = $this->makeItem();

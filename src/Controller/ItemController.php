@@ -75,13 +75,13 @@ class ItemController extends AbstractController
         $id = (int)PutFormDataParser::get('id', $content);
 
         if (!$id) {
-            return new JsonResponse(['error' => 'No data parameter'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'No data parameter (id)'], Response::HTTP_BAD_REQUEST);
         }
         
         $data = (string)PutFormDataParser::get('data', $content);
 
         if (!$data) {
-            return new JsonResponse(['error' => 'No data parameter'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'No data parameter (data)'], Response::HTTP_BAD_REQUEST);
         }
         
         $item = $this->itemRepository->find($id);
