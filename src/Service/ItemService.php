@@ -51,6 +51,18 @@ class ItemService
 
     /**
      * @param Item $item
+     * @param string $data
+     */
+    public function update(Item $item, string $data): void
+    {
+        $item->setData($data);
+
+        $this->entityManager->persist($item);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @param Item $item
      */
     public function remove(Item $item): void
     {
