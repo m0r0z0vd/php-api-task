@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Item;
+use App\Entity\User;
+use App\Repository\ItemRepository;
 use App\Service\ItemService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,39 +16,49 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ItemController extends AbstractController
 {
+    /** @var ItemService */
+    private $itemRepository;
+
+    /** @var ItemService */
+    private $itemService;
+
+    public function __construct(ItemRepository $itemRepository, ItemService $itemService)
+    {
+        $this->itemRepository = $itemRepository;
+        $this->itemService = $itemService;
+    }
+
     /**
      * @Route("/item", name="item_list", methods={"GET"})
      * @IsGranted("ROLE_USER")
+     * @return JsonResponse
      */
     public function list(): JsonResponse
     {
-        $items = $this->getDoctrine()->getRepository(Item::class)->findBy(['user' => $this->getUser()]);
+        $items = $this->itemRepository->findBy(['user' => $this->getUser()]);
+        $arrayData = $this->itemService->toArrayData($items);
 
-        $allItems = [];
-        foreach ($items as $item) {
-            $oneItem['id'] = $item->getId();
-            $oneItem['data'] = $item->getData();
-            $oneItem['created_at'] = $item->getCreatedAt();
-            $oneItem['updated_at'] = $item->getUpdatedAt();
-            $allItems[] = $oneItem;
-        }
-
-        return $this->json($allItems);
+        return $this->json($arrayData);
     }
 
     /**
      * @Route("/item", name="item_create", methods={"POST"})
      * @IsGranted("ROLE_USER")
+     * @param Request $request
+     * @param ItemService $itemService
+     * @return JsonResponse
      */
-    public function create(Request $request, ItemService $itemService)
+    public function create(Request $request, ItemService $itemService): JsonResponse
     {
-        $data = $request->get('data');
+        $data = (string)$request->get('data', '');
 
-        if (empty($data)) {
+        if (!$data) {
             return $this->json(['error' => 'No data parameter']);
         }
 
-        $itemService->create($this->getUser(), $data);
+        /** @var User $user */
+        $user = $this->getUser();
+        $itemService->create($user, $data);
 
         return $this->json([]);
     }
@@ -55,22 +66,22 @@ class ItemController extends AbstractController
     /**
      * @Route("/item/{id}", name="items_delete", methods={"DELETE"})
      * @IsGranted("ROLE_USER")
+     * @param int $id
+     * @return JsonResponse
      */
-    public function delete(Request $request, int $id)
+    public function delete(int $id): JsonResponse
     {
-        if (empty($id)) {
+        if (!$id) {
             return $this->json(['error' => 'No data parameter'], Response::HTTP_BAD_REQUEST);
         }
 
-        $item = $this->getDoctrine()->getRepository(Item::class)->find($id);
+        $item = $this->itemRepository->find($id);
 
-        if ($item === null) {
+        if (!$item) {
             return $this->json(['error' => 'No item'], Response::HTTP_BAD_REQUEST);
         }
 
-        $manager = $this->getDoctrine()->getManager();
-        $manager->remove($item);
-        $manager->flush();
+        $this->itemService->remove($item);
 
         return $this->json([]);
     }

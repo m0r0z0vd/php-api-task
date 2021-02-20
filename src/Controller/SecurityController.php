@@ -10,6 +10,7 @@ class SecurityController extends AbstractController
 {
     /**
      * @Route("/login", name="login", methods={"POST"})
+     * @return JsonResponse
      */
     public function login(): JsonResponse
     {
@@ -24,7 +25,7 @@ class SecurityController extends AbstractController
     /**
      * @Route("/logout", name="logout", methods={"POST"})
      */
-    public function logout()
+    public function logout(): void
     {
     }
 }
