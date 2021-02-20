@@ -6,17 +6,12 @@ use App\Entity\Item;
 use App\Entity\User;
 use App\Repository\ItemRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 
-class ItemControllerTest extends WebTestCase
+class ItemControllerTest extends FunctionalTestCase
 {
     private const EXISTING_USERNAME = 'john';
-
-    /** @var KernelBrowser */
-    private $client;
 
     /** @var ItemRepository */
     private $itemsRepository;
@@ -30,7 +25,6 @@ class ItemControllerTest extends WebTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
         $this->itemsRepository = static::$container->get(ItemRepository::class);
         $userRepository = static::$container->get(UserRepository::class);
         $this->existingUser = $userRepository->findOneBy(['username' => self::EXISTING_USERNAME]);
@@ -65,7 +59,7 @@ class ItemControllerTest extends WebTestCase
 
     public function testCreate(): void
     {
-        $data = 'very secure new item data ' . microtime(true);
+        $data = 'very secure new item data ' . microtime();
         $newItemData = ['data' => $data];
         $this->client->request('POST', '/item', $newItemData);
 
@@ -98,7 +92,7 @@ class ItemControllerTest extends WebTestCase
     public function testUpdate(): void
     {
         $item = $this->makeItem();
-        $data = 'updated data ' . microtime(true);
+        $data = 'updated data ' . microtime();
         $id = $item->getId();
         $content = 'Content-Disposition: form-data; name="id"' . PHP_EOL . PHP_EOL . $id . PHP_EOL;
         $content .= 'Content-Disposition: form-data; name="data"' . PHP_EOL . PHP_EOL . $data . PHP_EOL;
@@ -227,23 +221,12 @@ class ItemControllerTest extends WebTestCase
     }
 
     /**
-     * @param array $expectedData
-     */
-    private function assertResponseArrayData(array $expectedData): void
-    {
-        $content = $this->client->getResponse()->getContent();
-        $this->assertJson($content);
-        $content = json_decode($content, true);
-        $this->assertEquals($expectedData, $content);
-    }
-
-    /**
      * @return Item
      */
     private function makeItem(): Item
     {
         $item = new Item();
-        $item->setData('' . microtime(true));
+        $item->setData('' . microtime());
         $item->setUser($this->existingUser);
         $this->entityManager->persist($item);
         $this->entityManager->flush();
