@@ -42,7 +42,7 @@ class ItemServiceTest extends TestCase
     /**
      * @return EntityManagerInterface|MockObject
      */
-    private function mockEntityManager()
+    private function mockEntityManager(): MockObject
     {
         $manager = $this->createMock(EntityManagerInterface::class);
         $manager->method('persist')->willReturnCallback(function (Item $item) {
