@@ -11,35 +11,47 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class ItemServiceTest extends TestCase
 {
-    /**
-     * @var EntityManagerInterface|MockObject
-     */
-    private $entityManager;
-
-    /**
-     * @var ItemService
-     */
+    /** @var ItemService */
     private $itemService;
 
-    public function setUp(): void
+    /** @var Item|null */
+    private $persistedItem = null;
+
+    /** @var bool */
+    private $flushWasCalled = false;
+
+    protected function setUp(): void
     {
-        /** @var EntityManagerInterface */
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        
-        $this->itemService = new ItemService($this->entityManager);
+        $entityManager = $this->mockEntityManager();
+        $this->itemService = new ItemService($entityManager);
     }
 
     public function testCreate(): void
     {
-        /** @var User */
-        $user = $this->createMock(User::class);
+        $user = new User();
+        $user->setUsername('user');
         $data = 'secret data';
 
-        $expectedObject = new Item();
-        $expectedObject->setUser($user);
-
-        $this->entityManager->expects($this->once())->method('persist')->with($expectedObject);
-
         $this->itemService->create($user, $data);
+        $this->assertInstanceOf(Item::class, $this->persistedItem);
+        $this->assertTrue($this->flushWasCalled);
+        $this->assertEquals($user, $this->persistedItem->getUser());
+        $this->assertEquals($data, $this->persistedItem->getData());
+    }
+
+    /**
+     * @return EntityManagerInterface|MockObject
+     */
+    private function mockEntityManager()
+    {
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager->method('persist')->willReturnCallback(function (Item $item) {
+            $this->persistedItem = $item;
+        });
+        $manager->method('flush')->willReturnCallback(function () {
+            $this->flushWasCalled = true;
+        });
+
+        return $manager;
     }
 }

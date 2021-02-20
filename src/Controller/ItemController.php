@@ -38,7 +38,7 @@ class ItemController extends AbstractController
         $items = $this->itemRepository->findBy(['user' => $this->getUser()]);
         $arrayData = $this->itemService->toArrayData($items);
 
-        return $this->json($arrayData);
+        return new JsonResponse($arrayData);
     }
 
     /**
@@ -60,7 +60,7 @@ class ItemController extends AbstractController
         $user = $this->getUser();
         $itemService->create($user, $data);
 
-        return $this->json([]);
+        return new JsonResponse([]);
     }
 
     /**
@@ -83,6 +83,6 @@ class ItemController extends AbstractController
 
         $this->itemService->remove($item);
 
-        return $this->json([]);
+        return new JsonResponse([]);
     }
 }
